@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "607225206946",
+    "firebase_url": "https://wander-12b73.firebaseio.com",
+    "project_id": "wander-12b73",
+    "storage_bucket": "wander-12b73.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:607225206946:android:1a0335bc33de7127a15ffb",
+        "android_client_info": {
+          "package_name": "com.decagon.wander"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "607225206946-35ju3per46slm2qrmcurr368h7hgbikb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8jp6FWqWItd1x5e66p_RnOAdfpH41TDE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "607225206946-35ju3per46slm2qrmcurr368h7hgbikb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
