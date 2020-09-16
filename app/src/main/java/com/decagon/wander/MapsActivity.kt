@@ -3,6 +3,8 @@ package com.decagon.wander
 import android.Manifest
 import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -24,21 +26,34 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
-import java.util.*
+
+/*
+* The map activity
+* */
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
-
+    // Declare googleMap
     private lateinit var map: GoogleMap
+
+    // Holding reference to this  mapactivity
     private val TAG = MapsActivity::class.java.simpleName
+
+    // The request code
     private val REQUEST_LOCATION_PERMISSION = 1
 
+    // fusedLocationClient
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    // Declaring location request
     private lateinit var locationRequest: LocationRequest
+
+    // Locaiton call back
     private lateinit var locationCallback: LocationCallback
 
-     private lateinit var databaseRef: DatabaseReference
+    // Database ref
+    private lateinit var databaseRef: DatabaseReference
 
-
+    //  onCreate callback
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
@@ -46,61 +61,87 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-
+        // Using location services
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
+        // Database instance
         databaseRef = Firebase.database.reference
+        // ValueEventListener for update
         databaseRef.addValueEventListener(logListener)
     }
 
+    // ValuEventListener interface
     private val logListener = object : ValueEventListener {
+        // onCancelled overidden
         override fun onCancelled(error: DatabaseError) {
-            Toast.makeText(applicationContext, "Could not read from database", Toast.LENGTH_LONG).show()
+            Toast.makeText(applicationContext, "Could not read from database", Toast.LENGTH_LONG)
+                .show()
         }
 
-        //     @SuppressLint("LongLogTag")
+        // onDataChange
         override fun onDataChange(dataSnapshot: DataSnapshot) {
+
+            val bitmaps: Bitmap? = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(resources,R.drawable.david_marker), 200, 200, true)
+
+
+
+
+            // Check if datasnapshot exits
             if (dataSnapshot.exists()) {
-
+                // Get data from database
                 val userLocation = dataSnapshot.child("David").getValue(UserLocation::class.java)
-                var friendLat=userLocation?.latitude
-                var friendLong=userLocation?.longitude
+                var friendLat = userLocation?.latitude
+                var friendLong = userLocation?.longitude
 
-
-                if (friendLat !=null  && friendLong != null) {
+                // Confirm friend properties are not null
+                if (friendLat != null && friendLong != null) {
                     val friendLoc = LatLng(friendLat, friendLong)
-
-                    val markerOptions = MarkerOptions().position(friendLoc).title(userLocation!!.name)
+                    // Clear all existing map
+                    map.clear()
+                    // Add markers
+                    val markerOptions =
+                        MarkerOptions().position(friendLoc).title(userLocation!!.name)
                     map.addMarker(markerOptions)
-//                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(friendLoc, 10f))
-                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(friendLoc, 15f))
-                    //Zoom level - 1: World, 5: Landmass/continent, 10: City, 15: Streets and 20: Buildings
+                        .setIcon(BitmapDescriptorFactory.fromBitmap(bitmaps))
 
-                    Toast.makeText(applicationContext, "Locations accessed from the database", Toast.LENGTH_LONG).show()
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(friendLoc, 15f))
+
                 }
             }
         }
     }
 
+    /*
+    * getLocaionUpdate method */
     private fun getLocationUpdates() {
+        // LocationRequest instance
         locationRequest = LocationRequest()
-        locationRequest.interval = 60000
-        locationRequest.fastestInterval = 60000
+        // Setting interval
+        locationRequest.interval = 30000
+        // Setting fastestInterval
+        locationRequest.fastestInterval = 30000
+        // Setting locationRequest Priority
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
 
-
+        // Overriding LocationCallback interface
         locationCallback = object : LocationCallback() {
+            // Get last location through onLocationResult callback
             override fun onLocationResult(locationResult: LocationResult) {
                 if (locationResult.locations.isNotEmpty()) {
                     val location = locationResult.lastLocation
-
-
+                    //Database instance
                     lateinit var databaseRef: DatabaseReference
                     databaseRef = Firebase.database.reference
                     val userLocation = UserLocation("Victor", location.latitude, location.longitude)
                     //destruction
-                    val (name) = userLocation
+                    val (name, latitude, longitude) = userLocation
 
+                    // Getting my Location
+                    val myLoc = LatLng(latitude!!, longitude!!)
+                    //Add marker
+                    val markerOptions = MarkerOptions().position(myLoc).title(name)
+                    map.addMarker(markerOptions)
+
+                    // Persisting to Database
                     databaseRef.child(name!!).setValue(userLocation)
                         .addOnSuccessListener {
                             Toast.makeText(
@@ -116,33 +157,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                 Toast.LENGTH_LONG
                             ).show()
                         }
-
-
-
-//                    locationCallback = object : LocationCallback() {
-//                        override fun onLocationResult(locationResult: LocationResult?) {
-//                            super.onLocationResult(locationResult)
-//
-//                            if (locationResult!!.locations.isNotEmpty()) {
-//                                val location = locationResult.lastLocation
-//                                if (location != null) {
-//                                    val latLng = LatLng(location.latitude, location.longitude)
-//                                    val markerOptions = MarkerOptions().position(latLng)
-//                                    map.addMarker(markerOptions)
-//                                    map.animateCamera(
-//                                        CameraUpdateFactory.newLatLngZoom(
-//                                            latLng,
-//                                            15f
-//                                        )
-//                                    )
-//                                }
-//                            }
-//                        }
-//
-////            override fun onLocationAvailability(locationAvailability: LocationAvailability?) {
-////                super.onLocationAvailability(locationAvailability)
-////            }
-//                    }
                 }
             }
         }
@@ -225,35 +239,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         else -> super.onOptionsItemSelected(item)
     }
 
-//    private fun setMapLongClick(map: GoogleMap) {
-//        map.setOnMapLongClickListener { latLng ->
-//            // A Snippet is Additional text that's displayed below the title.
-//            val snippet = String.format(
-//                Locale.getDefault(),
-//                "Lat: %1$.5f, Long: %2$.5f",
-//                latLng.latitude,
-//                latLng.longitude
-//            )
-//            map.addMarker(
-//                MarkerOptions()
-//                    .position(latLng)
-//                    .title(getString(R.string.dropped_pin))
-//                    .snippet(snippet)
-//                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-//            )
-//        }
-//    }
-
-//    private fun setPoiClick(map: GoogleMap) {
-//        map.setOnPoiClickListener { poi ->
-//            val poiMarker = map.addMarker(
-//                MarkerOptions()
-//                    .position(poi.latLng)
-//                    .title(poi.name)
-//            )
-//            poiMarker.showInfoWindow()
-//        }
-//    }
 
     private fun setMapStyle(map: GoogleMap) {
         try {
