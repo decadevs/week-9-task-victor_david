@@ -103,7 +103,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     map.addMarker(markerOptions)
                         .setIcon(BitmapDescriptorFactory.fromBitmap(bitmaps))
 
-                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(friendLoc, 15f))
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(friendLoc, 20f))
 
                 }
             }
@@ -116,9 +116,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         // LocationRequest instance
         locationRequest = LocationRequest()
         // Setting interval
-        locationRequest.interval = 30000
+        locationRequest.interval = 3000
         // Setting fastestInterval
-        locationRequest.fastestInterval = 30000
+        locationRequest.fastestInterval = 3000
         // Setting locationRequest Priority
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
 
